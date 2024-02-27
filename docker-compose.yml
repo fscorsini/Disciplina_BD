@@ -11,4 +11,4 @@ services:
       MYSQL_DATABASE: banco
       MYSQL_PASSWORD: senha
       MYSQL_USER: usuario
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: senharoot
