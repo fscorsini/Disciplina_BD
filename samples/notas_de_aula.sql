@@ -2657,3 +2657,111 @@ END$
 delimiter ;
 
 show tables;
+
+/*
+Desenvolver um Banco de Dados para um sistema de uma faculdade. Vocês deverão criar a estrutura do banco de dados, 
+inserir dados, criar visões (Views), triggers e stored procedures para automatizar tarefas e garantir a integridade 
+dos dados. Sua faculdade possui cursos que podem durar de 4 a 10 semestres. Dá-se o nome de período a cada semestre 
+de um curso e estes períodos possuem disciplinas específicas já definidas para ele de acordo com a matriz do curso. 
+Estas disciplinas podem ou não fazer parte de mais de um curso. Os alunos se matriculam em períodos, mas também podem 
+se matricular em disciplinas isoladas. Seu sistema precisa gerir os professores que lecionam cada uma dessas disciplinas 
+(nome, cpf, código do professor, titulação máxima). Os professores podem lecionar mais de uma disciplina. Seu sistema 
+também precisará gerenciar os alunos (nome, matrícula, data de nascimento, curso que faz, período matriculado, disciplinas 
+avulsas). Criar as inserções necessárias para cadastrar um curso de 5 semestres (dados do curso, disciplinas, professores, 
+e pelo menos, 5 alunos). Criar uma view que mostre todos os alunos matriculados em cada curso com suas respectivas 
+disciplinas. Criar pelo menos mais 4 views para os relatórios mais importantes do sistema. 
+*/
+
+show databases;
+use exemplo_faculdade;
+
+show tables;
+desc aluno;
+select * from aluno;
+/* Cadastrar 5 alunos*/
+insert into aluno (matricula_aluno, nome_aluno, cpf_aluno,data_nascimento, data_atualizacao) values
+("SI101","Aluno 1","123.123.123-12","2000-01-01",curdate()),
+("SI102","Aluno 1","124.124.124-12","2000-02-01",curdate()),
+("SI103","Aluno 1","125.125.125-12","2000-03-01",curdate()),
+("SI104","Aluno 1","126.126.126-12","2000-04-01",curdate()),
+("SI105","Aluno 1","127.127.127-12","2000-05-01",curdate());
+delete from aluno where id_aluno != 0;
+ALTER TABLE aluno AUTO_INCREMENT = 1 ;
+
+/*
+Cadastrar um curso:
+ - Nome do curso: Sistemas de Informação
+ - Período 1:
+ -- Algoritmo 60h - Professor 1
+ -- Metodologia 30h - Professor 2
+ -- Lógica Matemática 45h - Professor 3
+ -- Arquitetura 45h - Professor 4
+ 
+ - Período 2:
+ -- Jogos 30h - Professor 5
+ -- Banco de dados 1 60h - Professor 1
+ -- Fundamentos SI 30h - Professor 2
+ -- Linguagem Programação 1 60h - Professor 3
+ 
+ - Período 3:
+ -- Estrutura de Dados 1 60h - Professor 4
+ -- Banco de dados 2 60h - Professor 5
+ -- Engenharia de Software 1 45h - Professor 1
+ -- Linguagem Programação 2 60h - Professor 2
+ 
+ - Período 4:
+ -- Estrutura de Dados 2 60h - Professor 3
+ -- IHC 30h - Professor 4
+ -- Engenharia de Software 2 60h - Professor 5
+ -- Linguagem Programação 3 60h - Professor 1
+ 
+ - Período 5:
+ -- Redes de Computadores 60h - Professor 2
+ -- Sistemas Operacionais 60h - Professor 3
+ -- Programação para dispositivos móveis 45h - Professor 4
+ -- Estatística 45h - Professor 5
+ 
+ Professores
+ - Professor 1
+ - Professor 2
+ - Professor 3
+ - Professor 4
+ - Professor 5
+*/
+
+#Cadastrar Professores
+desc professor;
+insert into professor (nome_professor,cpf_professor,titulacao_maxima) values
+("Professor 1","111.111.111-11","Doutorado"),
+("Professor 2","222.222.222-22","Doutorado"),
+("Professor 3","333.333.333-33","Doutorado"),
+("Professor 4","444.444.444-44","Doutorado"),
+("Professor 5","555.555.555-55","Doutorado");
+
+select * from professor;
+# Cadastrar disciplinas
+desc disciplina;
+insert into disciplina (nome_disciplina, carga_horaria) values
+("Algoritmo", 60),
+("Metodologia",30),
+("Lógica Matemática",45),
+("Arquitetura",45),
+("Jogos",30),
+("Banco de dados 1", 60),
+("Fundamentos SI", 30),
+("Linguagem Programação 1", 60),
+("Estrutura de Dados 1",60),
+("Banco de dados 2", 60),
+("Engenharia de Software 1", 45),
+("Linguagem Programação 2", 60),
+("Estrutura de Dados 2", 60),
+("IHC", 30),
+("Engenharia de Software 2", 60),
+("Linguagem Programação 3", 60),
+("Redes de Computadores", 60),
+("Sistemas Operacionais", 60),
+("Programação para dispositivos móveis", 45),
+("Estatística", 45);
+select sum(carga_horaria) from disciplina;
+
+
