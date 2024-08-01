@@ -2599,3 +2599,14 @@ begin
 	while ;
 end#
 delimiter ;
+
+desc cliente;
+select * from cliente;
+delimiter $
+create trigger tr_teste after update
+on cliente
+for each row
+begin
+	set old.dataNascimento = now();
+end$
+delimiter ;
