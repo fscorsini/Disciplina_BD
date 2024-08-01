@@ -2765,3 +2765,283 @@ insert into disciplina (nome_disciplina, carga_horaria) values
 select sum(carga_horaria) from disciplina;
 
 
+#Cadastrando o curso
+select * from curso;
+insert into curso (nome_curso, numero_periodo) values
+("Sistemas de Informação",5);
+
+# Cadastrando períodos
+select * from periodo;
+insert into periodo (nome_periodo, fk_periodo_curso) values
+("Primeiro Período", 1),
+("Segundo Período", 1),
+("Terceiro Período", 1),
+("Quarto Período", 1),
+("Quinto Período", 1);
+
+#Cadastrando os professores nas disciplinas
+select * from professor_por_disciplina;
+insert into professor_por_disciplina (disciplina_id_disciplina, professor_id_professor) values
+(1,1),
+(2,2),
+(3,3),
+(4,4),
+(5,5),
+(6,1),
+(7,2),
+(8,3),
+(9,4),
+(10,5),
+(11,1),
+(12,2),
+(13,3),
+(14,4),
+(15,5),
+(16,1),
+(17,2),
+(18,3),
+(19,4),
+(20,5);
+
+#Cadastrando as disciplinas no período
+select * from disciplina_por_periodo;
+insert into disciplina_por_periodo (periodo_id_periodo, disciplina_id_disciplina) values
+(1,1),
+(1,2),
+(1,3),
+(1,4),
+(2,5),
+(2,6),
+(2,7),
+(2,8),
+(3,9),
+(3,10),
+(3,11),
+(3,12),
+(4,13),
+(4,14),
+(4,15),
+(4,16),
+(5,17),
+(5,18),
+(5,19),
+(5,20);
+
+#Matriculando os alunos nas disciplinas do primeiro módulo
+select * from aluno;
+select * from matricula;
+insert into matricula (data_matricula,fk_matricula_disciplina,fk_matricula_aluno) values
+(curdate(),1,1),
+(curdate(),1,2),
+(curdate(),1,3),
+(curdate(),1,4),
+(curdate(),1,5),
+(curdate(),2,1),
+(curdate(),2,2),
+(curdate(),2,3),
+(curdate(),2,4),
+(curdate(),2,5),
+(curdate(),3,1),
+(curdate(),3,2),
+(curdate(),3,3),
+(curdate(),3,4),
+(curdate(),3,5),
+(curdate(),4,1),
+(curdate(),4,2),
+(curdate(),4,3),
+(curdate(),4,4),
+(curdate(),4,5);
+
+
+/*
+Criar uma view que mostre todos os alunos matriculados em cada curso 
+com suas respectivas disciplinas. Criar pelo menos mais 4 views para os 
+relatórios mais importantes do sistema. 
+*/
+create view alunos_por_curso as 
+	select C.nome_curso as Curso, A.nome_aluno as "Nome Aluno",A.matricula_aluno as Matricula, D.nome_disciplina as Disciplina, concat(D.carga_horaria,"h") as CH
+	from aluno as A
+	join matricula as M on M.fk_matricula_aluno = A.id_aluno
+	join disciplina as D on D.id_disciplina = M.fk_matricula_disciplina
+	join disciplina_por_periodo as DP on DP.disciplina_id_disciplina = D.id_disciplina
+	join periodo as P on P.id_periodo = DP.periodo_id_periodo
+	join curso as C on C.id_curso = P.fk_periodo_curso;
+
+select * from alunos_por_curso;
+
+#Numero de cursos na faculdade
+create view numero_de_cursos as
+	select count(*)as Cursos from curso ;
+select * from numero_de_cursos;
+
+#Numero de alunos Matriculados
+create view alunos_matriculados as
+	select count(distinct(fk_matricula_aluno)) as "Alunos Matriculados" from matricula;
+select * from alunos_matriculados;
+
+#Carga horária total dos cursos
+create view ch_curso as 
+	select C.nome_curso as "Nome Curso", sum(D.carga_horaria) as "CH Total"
+	from disciplina as D
+	join disciplina_por_periodo as DP on DP.disciplina_id_disciplina = D.id_disciplina
+	join periodo as P on P.id_periodo = DP.periodo_id_periodo
+	join curso as C on C.id_curso = P.fk_periodo_curso
+	group by C.nome_curso
+	order by C.nome_curso ASC;
+select * from ch_curso;
+
+#Número de período dos cursos
+create view periodos_por_curso as 
+	select C.nome_curso as "Nome Curso", count(P.id_periodo) as "Nº Períodos"
+	from periodo as P
+	join curso as C on C.id_curso = P.fk_periodo_curso
+	group by C.nome_curso
+	order by C.nome_curso ASC;
+
+select * from periodos_por_curso;
+
+
+/* Atividade parte 2
+Objetivo do Sistema: Sistema para informatizar uma faculdade
+Utilizando o banco de dados para nossa faculdade que foi criado na aula anterior, desenvolva as seguintes atividades:
+Triggers:
+1.Crie um trigger que verifique se o CPF do aluno já está cadastrado no sistema. Não é permitido um mesmo CPF matriculado em mais de um curso ao mesmo tempo;
+2.Crie um trigger que, ao matricular um aluno em uma disciplina ou período, verifique se o aluno já está matriculado. Caso esteja matriculado, não permita executar a matrícula;
+3.Crie um trigger que atualize a data de modificação de um aluno sempre que qualquer informação do aluno for atualizada;
+4.Crie uma trigger que registre em uma tabela de log, todas as alterações realizadas nos cadastros de alunos, disciplinas e curso. Registre também as alterações feitas na matrícula do aluno.
+
+Stored Procedure:
+1.Crie uma stored procedure que, dado a matrícula de um aluno e o semestre/período, matricule o aluno em todas as disciplinas desse semestre;
+2.Crie uma stored procedure que, passando a matrícula de um aluno, atualize suas informações de nome, data de nascimento e email. Caso considere a atualização de mais alguma informação necessária, pode adequar a stored procedure para suas necessidades;
+3.Crie uma stored procedure que, passando o código de um curso, liste todas as disciplinas de curso organizada por período;
+4.Crie uma stored procedure que, dado o código de uma disciplina, apresente a relação de alunos matriculados nesta disciplina;
+*/
+
+# Triggers
+/* 1.Crie um trigger que verifique se o CPF do aluno já está cadastrado no sistema. 
+	Não é permitido um mesmo CPF matriculado em mais de um curso ao mesmo tempo;*/
+delimiter $
+create trigger tr_evita_duplicar 
+before insert on aluno
+for each row
+begin
+	select count(*) into @cpfaluno from aluno where aluno.cpf_aluno = NEW.cpf_aluno;
+    if @cpfaluno > 0 then
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'CPF já cadastrado.';
+	end if;
+end$
+delimiter ;
+
+#Simulando a duplicidade de CPF
+insert into aluno (matricula_aluno,nome_aluno,cpf_aluno,data_nascimento,data_atualizacao) values
+("SI106","Aluno 6", "123.123.123-12", "2000-06-01", curdate());
+#Simulando com o CPF novo
+insert into aluno (matricula_aluno,nome_aluno,cpf_aluno,data_nascimento,data_atualizacao) values
+("SI106","Aluno 6", "123.123.122-22", "2000-06-01", curdate());
+
+select * from aluno;
+
+/* 2.Crie um trigger que, ao matricular um aluno em uma disciplina ou período, 
+verifique se o aluno já está matriculado. Caso esteja matriculado, não permita 
+executar a matrícula;*/
+delimiter $
+create trigger tr_verifica_matricula 
+before insert on matricula
+for each row
+begin
+	select count(*) into @jamatriculado from matricula as M where 
+    M.fk_matricula_aluno = NEW.fk_matricula_aluno
+    and fk_matricula_disciplina = NEW.fk_matricula_disciplina;
+    if @jamatriculado > 0 then
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Aluno já matriculado na disciplina!';
+    end if;
+end$
+delimiter ;
+
+#Validando alerta de duplicidade
+insert into matricula (data_matricula,fk_matricula_disciplina,fk_matricula_aluno) values
+(curdate(),1,1);
+#Validando nova inserção
+insert into matricula (data_matricula,fk_matricula_disciplina,fk_matricula_aluno) values
+(curdate(),1,6);
+
+
+/* 3.Crie um trigger que atualize a data de modificação de um aluno sempre 
+que qualquer informação do aluno for atualizada;*/
+delimiter $
+create trigger tr_atualiza_data_atualizacao
+before update on aluno
+for each row
+begin
+	set NEW.data_atualizacao = curdate();
+end$
+delimiter ;
+
+update aluno set nome_aluno = "Aluno 06" where id_aluno=6;
+select * from aluno;
+
+/*
+4.Crie uma trigger que registre em uma tabela de log, todas as alterações
+realizadas nos cadastros de alunos, disciplinas e curso. Registre também as
+alterações feitas na matrícula do aluno.
+*/
+#Criando a tabela auditoria
+create table auditoria (
+	id_auditoria int Primary key auto_increment,
+    data_hora datetime,
+    usuario varchar(40),
+    mensagem varchar(500)
+);
+select * from auditoria;
+
+#triggers de auditoria
+delimiter $
+create trigger monitora_insert_aluno
+after insert on aluno
+for each row
+begin
+	set @mensagem = concat("Inserção realizada: ", new.id_aluno, new.matricula_aluno, new.nome_aluno,
+		new.cpf_aluno, new.data_nascimento, new.data_atualizacao);
+	insert into auditoria (data_hora,usuario,mensagem) values
+    (now(),user(),@mensagem);
+end$
+delimiter ;
+
+insert into aluno (matricula_aluno,nome_aluno,cpf_aluno,data_nascimento,data_atualizacao) values
+("SI108","Aluno 8", "122.133.111-77", "2000-08-01", curdate());
+select * from auditoria;
+
+/* Montar, nos mesmos moldes, um para cada ação e tabela a ser monitorada:
+ - after update on aluno
+ - after delete on aluno
+ - after insert on disciplina
+ - after update on disciplina
+ - after delete on disciplina
+ - after insert on curso
+ - after update on curso
+ - after delete on curso
+ */
+
+###Stored Procedure
+
+
+
+
+
+#Versão da consulta das disciplinas ordenadas por período do curso usando and
+select C.nome_curso, P.nome_periodo, D.nome_disciplina 
+from curso as C, disciplina as D, periodo as P, disciplina_por_periodo as DP
+where D.id_disciplina = DP.disciplina_id_disciplina 
+and DP.periodo_id_periodo = P.id_periodo
+and P.fk_periodo_curso = C.id_curso
+order by C.nome_curso ASC, P.id_periodo ASC;
+
+#Versão da consulta das disciplinas ordenadas por período do curso usando inner join
+select C.nome_curso, P.nome_periodo, D.nome_disciplina 
+from curso as C
+join periodo as P on P.fk_periodo_curso = C.id_curso
+join disciplina_por_periodo as DP on DP.periodo_id_periodo = P.id_periodo
+join disciplina as D on D.id_disciplina = DP.disciplina_id_disciplina
+order by C.nome_curso ASC, P.id_periodo ASC;
+
+
