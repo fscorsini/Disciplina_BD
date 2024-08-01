@@ -2602,11 +2602,58 @@ delimiter ;
 
 desc cliente;
 select * from cliente;
+
+
 delimiter $
-create trigger tr_teste after update
+create trigger tr_teste before update
 on cliente
 for each row
 begin
-	set old.dataNascimento = now();
+	set new.dataNascimento = now();
 end$
 delimiter ;
+
+
+select * from cliente;
+update cliente set bairro = "A" where codCliente = 1;
+
+show tables;
+
+select * from itemvenda;
+select * from venda;
+select * from produto;
+delimiter $
+create procedure sp_vende_tudo (
+	p_id_cliente int
+)
+begin
+	insert into venda (dataHora, CLIENTE_codCliente) values (now(), p_id_cliente);
+    select max(codVenda) into @codigo from venda;
+    insert into intemvenda (Venda_codVenda,Produto_codProduto) values ((select codProduto from produto),@codigo);
+end$
+    
+delimiter ;
+
+select * from cliente;
+insert into venda (dataHora, CLIENTE_codCliente) values (now(), 2);
+select max(codvenda) into @codigo from venda;
+select @codigo;
+insert into itemvenda (Venda_codVenda,Produto_codProduto) values ((select codProduto from produto),@codigo);
+
+
+use faculdade;
+delimiter $
+CREATE PROCEDURE matricular_aluno_disciplinas (
+    IN aluno_id INT,
+    IN periodo_id INT
+)
+BEGIN
+    INSERT INTO Matriculas_Disciplinas (aluno_id, disciplina_id)
+    SELECT aluno_id, disciplina_id
+    FROM Curso_Disciplinas
+    WHERE periodo_id = periodo_id;
+END$
+
+delimiter ;
+
+show tables;
