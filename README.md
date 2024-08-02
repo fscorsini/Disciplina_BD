@@ -13,4 +13,6 @@ Para acessar o serviço, utilize a ferramenta de sua escolha e acesse com as seg
 * Usuario: root
 * Senha: password
 
+Dentro da pasta Samples existem alguns bancos que podem ser utilizados para teste um arquivo de notas de aula onde existem vários exemplos de comandos SQL.
+
 Bons estudos.
