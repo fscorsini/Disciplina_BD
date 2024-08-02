@@ -2641,7 +2641,7 @@ select @codigo;
 insert into itemvenda (Venda_codVenda,Produto_codProduto) values ((select codProduto from produto),@codigo);
 
 
-use faculdade;
+use exemplo_faculdade;
 delimiter $
 CREATE PROCEDURE matricular_aluno_disciplinas (
     IN aluno_id INT,
@@ -3023,6 +3023,97 @@ select * from auditoria;
  */
 
 ###Stored Procedure
+/*
+Stored Procedure:
+1.Crie uma stored procedure que, dado a matrícula de um aluno e o semestre/período, 
+matricule o aluno em todas as disciplinas desse semestre;
+*/
+delimiter $
+create procedure sp_matricula_periodo(
+	in p_matricula int,
+    in p_codigo_periodo int
+)
+begin
+	
+	
+end$
+delimiter ;
+
+/*
+2.Crie uma stored procedure que, passando a matrícula de um aluno, atualize suas 
+informações de nome, data de nascimento e email. Caso considere a atualização de 
+mais alguma informação necessária, pode adequar a stored procedure para suas necessidades;
+*/
+desc aluno;
+delimiter $
+create procedure sp_atualizar_aluno(
+	in p_matricula_aluno varchar(200),
+    in p_nome_aluno varchar(200),
+    in p_data_nascimento_aluno date,
+    in p_email_aluno varchar(200)
+)
+begin
+	select nome_aluno, data_nascimento, email_aluno into @nome, @nascimento,@email from
+    aluno where matricula_aluno = p_matricula_aluno;
+	update aluno 
+		set nome_aluno = coalesce(p_nome_aluno, @nome),
+		data_nascimento = coalesce(p_data_nascimento_aluno, @nascimento),
+        email_aluno = coalesce(p_email_aluno,@email)
+    where matricula_aluno = p_matricula_aluno;
+end$
+delimiter ;
+select * from aluno;
+call sp_atualizar_aluno("SI101","Aluno 01", NULL,NULL);
+
+
+/*
+3.Crie uma stored procedure que, passando o código de um curso, liste todas as 
+disciplinas de curso organizada por período;
+*/
+delimiter $
+create procedure sp_listar_disciplina_curso (
+	p_codigo_curso int
+)
+begin
+	select C.nome_curso, P.nome_periodo, D.nome_disciplina 
+	from curso as C
+	join periodo as P on P.fk_periodo_curso = C.id_curso
+	join disciplina_por_periodo as DP on DP.periodo_id_periodo = P.id_periodo
+	join disciplina as D on D.id_disciplina = DP.disciplina_id_disciplina
+	where C.id_curso = p_codigo_curso
+	order by C.nome_curso ASC, P.id_periodo ASC;
+end$
+delimiter ;
+call sp_listar_disciplina_curso(1);
+
+/*
+4.Crie uma stored procedure que, dado o código de uma disciplina, apresente a 
+relação de alunos matriculados nesta disciplina;
+*/
+delimiter $
+create procedure sp_listar_alunos_por_disciplina (
+	in p_id_disciplina int
+)
+begin
+	select D.nome_disciplina as Disciplina, D.carga_horaria as CH, 
+	A.matricula_aluno as Matricula, A.nome_aluno as "Nome Aluno"
+	from disciplina as D
+	join matricula as M on M.fk_matricula_disciplina = D.id_disciplina
+	join aluno as A on A.id_aluno = M.fk_matricula_aluno
+    where D.id_disciplina = p_id_disciplina
+	order by A.matricula_aluno;
+end$
+delimiter ;
+call sp_listar_alunos_por_disciplina(2);
+
+
+
+
+
+
+
+
+
 
 
 
