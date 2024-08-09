@@ -3030,14 +3030,17 @@ matricule o aluno em todas as disciplinas desse semestre;
 */
 delimiter $
 create procedure sp_matricula_periodo(
-	in p_matricula int,
+	in p_matricula varchar(200),
     in p_codigo_periodo int
 )
 begin
-	
-	
+	select id_aluno into @idaluno from aluno where matricula_aluno = p_matricula;
+    insert into matricula (data_matricula,fk_matricula_disciplina,fk_matricula_aluno) 
+		select curdate(), D.id_disciplina, @idaluno from disciplina as D, disciplina_por_periodo as DP 
+		where DP.periodo_id_periodo = p_codigo_periodo and D.id_disciplina = DP.disciplina_id_disciplina;	
 end$
 delimiter ;
+call sp_matricula_periodo("SI107", 5);
 
 /*
 2.Crie uma stored procedure que, passando a matrícula de um aluno, atualize suas 
