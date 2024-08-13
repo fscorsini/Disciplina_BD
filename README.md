@@ -1,8 +1,7 @@
 ## SGBD - Banco de Dados II
 ### Prof. Fábio Corsini
 ### Estrutura Básica para um Server Mysql para a Disciplina de Banco de Dados II
-#### IFSULDEMINAS - Campus Machado
-#### Departamento de Computaação
+#### [IFSULDEMINAS - Campus Machado](https://portal.mch.ifsuldeminas.edu.br/) - Departamento de Computação
 
 Para utilizar o serviço, após clonar, basta, com o docker rodando em seu computador, executar o comando abaixo na pasta raiz do projeto:
 > docker compose up
